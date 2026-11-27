@@ -29,6 +29,7 @@ App-backup2/**
 publish_backend/**
 **/BPMS_Release/**
 **/BPMS_Release_Clean/**
+BPMS_Release_v1.0.0_TestBase/**
 **/Pre-Install App/**
 *.zip
 *.exe

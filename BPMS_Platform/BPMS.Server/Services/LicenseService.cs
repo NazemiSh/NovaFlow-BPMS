@@ -135,10 +135,12 @@ public class LicenseService : ILicenseService
             CompanyName = _configuration["VendorInfo:CompanyName"] ?? "Shahab Nazemi",
             Email = _configuration["VendorInfo:Email"] ?? "shahab.nazemi@gmail.com",
             Phone = _configuration["VendorInfo:Phone"] ?? "0900-000-0000",
-            Website = _configuration["VendorInfo:Website"] ?? "https://github.com/NazemiSh/BPMS-BRMS-Platform",
+            Website = _configuration["VendorInfo:Website"] ?? "https://github.com/NazemiSh/NovaFlow-BPMS",
             WhatsappUrl = _configuration["VendorInfo:WhatsappUrl"] ?? "https://wa.me/qr/X7NJ6BHTONWWF1",
-            RepositoryUrl = _configuration["VendorInfo:RepositoryUrl"] ?? "https://github.com/NazemiSh/BPMS-BRMS-Platform"
+            RepositoryUrl = _configuration["VendorInfo:RepositoryUrl"] ?? "https://github.com/NazemiSh/NovaFlow-BPMS"
         };
+
+        var currentVersion = SystemUpdateService.GetCurrentAppVersion();
 
         return new LicenseStatusDto
         {
@@ -153,7 +155,7 @@ public class LicenseService : ILicenseService
             MaxUsers = validation.MaxUsers,
             ActiveUsersCount = activeUsersCount,
             EnableAiModule = validation.EnableAiModule,
-            Version = "1.0.0",
+            Version = currentVersion,
             VendorInfo = vendor
         };
     }

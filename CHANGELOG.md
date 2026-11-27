@@ -4,6 +4,17 @@
 
 ---
 
+## [v1.0.1] - 2026-11-27
+
+### به‌روزرسانی آنلاین (OTA Update) و یکپارچه‌سازی با مخزن NovaFlow-BPMS
+- اتصال سیستم بررسی نسخه و استعلام انتشار به مخزن عمومی `NazemiSh/NovaFlow-BPMS` (`GET /api/system/check-update`) با پشتیبانی از حالت شبکه ایزوله (`isOffline: true`).
+- پیاده‌سازی موتور به‌روزرسانی آنلاین ایمن برای IIS (`POST /api/system/apply-update` و `GET /api/system/update-status`) همراه با عامل مستقل `Update-Agent.ps1` خارج از درخت فرآیند IIS.
+- تهیه خودکار نسخه پشتیبان کامل پایگاه‌داده (`.bak`) و باینری‌های برنامه پیش از جایگزینی فایل‌ها، با حفظ کامل `appsettings.json`، `wwwroot/uploads` و `App_Data`.
+- مکانیزم **Auto-Rollback** خودکار در صورت عدم پاسخ‌گویی اندپوینت سلامت (`/api/settings/public`) پس از راه‌اندازی مجدد AppPool.
+- ارتقای رابط کاربری کارت مدیریت لایسنس و نسخه (`LicensePanel.jsx`) با نمایشگر ۴مرحله‌ای زنده به‌روزرسانی و لینک مستقیم جزئیات تغییرات در GitHub.
+
+---
+
 ## [v1.0.0] - 2026-11-27
 
 ### نسخه پایه انتشار سازمانی (Enterprise Release)

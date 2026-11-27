@@ -23,6 +23,7 @@ builder.Services.AddScoped<IWorkflowService, WorkflowService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddScoped<IMasterDataService, MasterDataService>();
 builder.Services.AddScoped<ISecurityPolicyService, SecurityPolicyService>();
+builder.Services.AddScoped<ISystemUpdateService, SystemUpdateService>();
 builder.Services.AddHostedService<BackupSchedulerService>();
 builder.Services.AddHostedService<LicenseHeartbeatService>();
 builder.Services.AddHostedService<MasterDataSyncHostedService>();

@@ -32,14 +32,14 @@ export default function LicenseLockScreen({ licenseData, onActivated, onLogout }
     companyName: 'Shahab Nazemi',
     phone: '0900-000-0000',
     email: 'shahab.nazemi@gmail.com',
-    website: 'https://github.com/NazemiSh/BPMS-BRMS-Platform',
+    website: 'https://github.com/NazemiSh/NovaFlow-BPMS',
     whatsappUrl: 'https://wa.me/qr/X7NJ6BHTONWWF1',
-    repositoryUrl: 'https://github.com/NazemiSh/BPMS-BRMS-Platform'
+    repositoryUrl: 'https://github.com/NazemiSh/NovaFlow-BPMS'
   });
   const isTrial = licenseData?.isTrial ?? false;
   const isClockTampered = licenseData?.status === 'ClockTampered';
   const whatsappUrl = hideDevContact ? '' : (vendorInfo.whatsappUrl || 'https://wa.me/qr/X7NJ6BHTONWWF1');
-  const repoUrl = hideDevContact ? '' : (vendorInfo.repositoryUrl || vendorInfo.website || 'https://github.com/NazemiSh/BPMS-BRMS-Platform');
+  const repoUrl = hideDevContact ? '' : (vendorInfo.repositoryUrl || vendorInfo.website || 'https://github.com/NazemiSh/NovaFlow-BPMS');
 
   const handleCopy = async () => {
     if (!machineId) return;
@@ -322,7 +322,7 @@ export default function LicenseLockScreen({ licenseData, onActivated, onLogout }
                       dir="ltr"
                       className="text-xs font-bold text-slate-300 hover:text-white font-mono truncate block flex items-center gap-1"
                     >
-                      <span>BPMS-BRMS-Platform</span>
+                      <span>NovaFlow-BPMS</span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   </div>

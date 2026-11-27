@@ -39,6 +39,8 @@ export default function LicensePanel() {
   const [feedback, setFeedback] = useState(null);
   const [updateInfo, setUpdateInfo] = useState(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(null);
 
   const fetchLicenseStatus = async () => {
     try {
@@ -59,17 +61,71 @@ export default function LicensePanel() {
   const fetchUpdateInfo = async (force = false) => {
     try {
       setCheckingUpdate(true);
-      const res = await api.get(`/admin/license/check-update${force ? '?force=true' : ''}`);
+      const res = await api.get(`/system/check-update${force ? '?force=true' : ''}`);
       setUpdateInfo(res.data);
-    } catch (err) {
+    } catch {
       setUpdateInfo({
         status: 'Offline',
-        currentVersion: '1.0.0',
+        isOffline: true,
+        currentVersion: statusData?.version || '1.0.0',
         hasUpdate: false,
+        releaseUrl: 'https://github.com/NazemiSh/NovaFlow-BPMS/releases',
+        repositoryUrl: 'https://github.com/NazemiSh/NovaFlow-BPMS',
         message: 'سرور به اینترنت دسترسی ندارد (شبکه ایزوله یا ارتباط محدود است).'
       });
     } finally {
       setCheckingUpdate(false);
+    }
+  };
+
+  const handleApplyUpdate = async () => {
+    if (!updateInfo?.hasUpdate) return;
+    const confirmed = await confirm({
+      title: `به‌روزرسانی آنلاین به نسخه v${updateInfo.latestVersion}`,
+      message: `آیا از شروع به‌روزرسانی آنلاین سامانه به نسخه v${updateInfo.latestVersion} اطمینان دارید؟ پیش از هرگونه تغییر، نسخه پشتیبان کامل از پایگاه‌داده و فایل‌های برنامه تهیه می‌شود و فایل‌های آپلودی و تنظیمات دست‌نخورده باقی می‌مانند.`,
+      confirmText: 'شروع به‌روزرسانی آنلاین',
+      variant: 'primary'
+    });
+    if (!confirmed) return;
+
+    try {
+      setUpdating(true);
+      setUpdateProgress({
+        state: 'Downloading',
+        step: 1,
+        message: 'در حال شروع فرآیند به‌روزرسانی و دانلود بسته...'
+      });
+
+      const pollTimer = setInterval(async () => {
+        try {
+          const statusRes = await api.get('/system/update-status');
+          const st = statusRes.data;
+          if (st && st.state && st.state !== 'Idle') {
+            setUpdateProgress(st);
+            if (st.state === 'Completed') {
+              clearInterval(pollTimer);
+              setTimeout(() => {
+                window.location.reload();
+              }, 1800);
+            } else if (st.state === 'Failed' || st.state === 'RolledBack') {
+              clearInterval(pollTimer);
+              setUpdating(false);
+            }
+          }
+        } catch {
+          // During AppPool restart, transient network errors are expected; keep polling
+        }
+      }, 1500);
+
+      await api.post('/system/apply-update');
+    } catch (err) {
+      setUpdateProgress({
+        state: 'Failed',
+        step: 0,
+        message: err.response?.data?.message || err.message || 'خطا در اجرای به‌روزرسانی آنلاین',
+        error: err.response?.data?.message || err.message
+      });
+      setUpdating(false);
     }
   };
 
@@ -187,7 +243,7 @@ export default function LicensePanel() {
             <h4 className="font-bold text-base flex items-center gap-2">
               <span>مدیریت لایسنس سخت‌افزاری و اطلاعات مالکیت سامانه</span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white/10 text-indigo-200">
-                v{statusData?.version || '1.0.0'}
+                v{statusData?.version || '1.0.1'}
               </span>
             </h4>
             <p className="text-xs text-slate-300">
@@ -219,52 +275,85 @@ export default function LicensePanel() {
       </div>
 
       <div className="p-6 space-y-6">
-        {/* نوار اعلان وجود نسخه جدید روی مخزن گیت‌هاب (بخش ۸-۴) */}
+        {/* نوار اعلان وجود نسخه جدید روی مخزن گیت‌هاب و موتور به‌روزرسانی آنلاین (OTA) */}
         {updateInfo?.hasUpdate && (
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-blue-950/30 border border-emerald-300 dark:border-emerald-700/60 shadow-xs space-y-3 animate-in fade-in">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-blue-950/30 border border-emerald-300 dark:border-emerald-700/60 shadow-xs space-y-4 animate-in fade-in">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
                   <ArrowUpCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-black text-emerald-950 dark:text-emerald-200 text-sm">
-                      {updateInfo.title || 'نگارش جدید سامانه در دسترس است!'}
+                      نسخه جدید <bdi dir="ltr">v{updateInfo.latestVersion}</bdi> در دسترس است
                     </span>
                     <span dir="ltr" className="text-xs font-mono font-bold bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
                       v{updateInfo.latestVersion}
                     </span>
                   </div>
                   <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
-                    نسخه فعلی سرور: <code dir="ltr" className="font-mono font-bold">v{updateInfo.currentVersion}</code> {updateInfo.releaseDate ? `| تاریخ انتشار: ${updateInfo.releaseDate}` : ''}
+                    نسخه فعلی سرور: <code dir="ltr" className="font-mono font-bold">v{updateInfo.currentVersion}</code>
+                    {updateInfo.publishedAt ? ` | تاریخ انتشار: ${new Date(updateInfo.publishedAt).toLocaleDateString('fa-IR')}` : ''}
                   </p>
                 </div>
               </div>
-              <a
-                href={updateInfo.repositoryUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-xs shrink-0 self-start sm:self-center"
-              >
-                <Download className="w-4 h-4" />
-                <span>مشاهده و دریافت از مخزن GitHub</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <a
+                  href={updateInfo.releaseUrl || updateInfo.repositoryUrl || 'https://github.com/NazemiSh/NovaFlow-BPMS/releases'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white dark:bg-[#1e2030] hover:bg-slate-50 dark:hover:bg-slate-800 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 font-bold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs"
+                >
+                  <span>مشاهده جزئیات تغییرات در GitHub ↗</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleApplyUpdate}
+                  disabled={updating || !updateInfo.assetDownloadUrl}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-xs cursor-pointer"
+                >
+                  {updating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  <span>{updating ? 'در حال به‌روزرسانی...' : 'به‌روزرسانی آنلاین به نسخه جدید'}</span>
+                </button>
+              </div>
             </div>
 
-            {updateInfo.changelog && updateInfo.changelog.length > 0 && (
-              <div className="bg-white/80 dark:bg-[#1e2030] rounded-xl p-3 border border-emerald-200/60 dark:border-emerald-800/50">
-                <span className="text-[11px] font-bold text-emerald-900 dark:text-emerald-200 block mb-1.5">
-                  لیست تغییرات و قابلیت‌های نگارش جدید (Changelog):
-                </span>
-                <ul className="text-xs text-slate-700 dark:text-slate-300 space-y-1 list-disc list-inside">
-                  {updateInfo.changelog.map((item, idx) => (
-                    <li key={idx} className="leading-relaxed">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+            {updateProgress && (
+              <div className="bg-white/90 dark:bg-[#1e2030] rounded-xl p-4 border border-emerald-200 dark:border-emerald-800/60 space-y-3">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className={updateProgress.state === 'Failed' || updateProgress.state === 'RolledBack' ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-300'}>
+                    {updateProgress.message}
+                  </span>
+                  <span className="font-mono text-[11px] text-slate-500">{updateProgress.state}</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                  {[
+                    { step: 1, label: '۱. دانلود بسته' },
+                    { step: 2, label: '۲. تهیه بکاپ دیتابیس و فایل‌ها' },
+                    { step: 3, label: '۳. جایگزینی فایل‌ها و راه‌اندازی مجدد' },
+                    { step: 4, label: '۴. رفرش خودکار صفحه' }
+                  ].map((s) => {
+                    const active = updateProgress.step === s.step && updateProgress.state !== 'Failed' && updateProgress.state !== 'RolledBack';
+                    const done = updateProgress.step > s.step || updateProgress.state === 'Completed';
+                    return (
+                      <div
+                        key={s.step}
+                        className={`px-2.5 py-2 rounded-lg border text-center font-medium transition ${
+                          done
+                            ? 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200'
+                            : active
+                              ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-200 animate-pulse'
+                              : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-400'
+                        }`}
+                      >
+                        {s.label}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
@@ -272,19 +361,30 @@ export default function LicensePanel() {
 
         {/* نوار وضعیت بررسی نسخه آنلاین / آفلاین */}
         <div className="flex flex-wrap items-center justify-between bg-slate-50 dark:bg-[#1e2030] border border-slate-200 dark:border-slate-700/80 rounded-xl px-4 py-2.5 text-xs gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-slate-500 dark:text-slate-400 font-medium">وضعیت بررسی نسخه در مخزن:</span>
-            {updateInfo?.status === 'Online' ? (
+            {updateInfo?.status === 'Online' && !updateInfo?.isOffline ? (
               updateInfo.hasUpdate ? (
                 <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-500/20 px-2.5 py-0.5 rounded-md">
                   <ArrowUpCircle className="w-3.5 h-3.5" />
-                  نگارش جدید (<bdi dir="ltr">v{updateInfo.latestVersion}</bdi>) منتشر شده است
+                  نسخه جدید (<bdi dir="ltr">v{updateInfo.latestVersion}</bdi>) در دسترس است
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 font-bold text-slate-700 dark:text-slate-200 bg-slate-200/80 dark:bg-slate-800 px-2.5 py-0.5 rounded-md">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  سامانه به آخرین نگارش به‌روز است (<bdi dir="ltr">v{updateInfo.currentVersion}</bdi>)
-                </span>
+                <>
+                  <span className="inline-flex items-center gap-1 font-bold text-slate-700 dark:text-slate-200 bg-slate-200/80 dark:bg-slate-800 px-2.5 py-0.5 rounded-md">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    سامانه در آخرین نسخه منتشرشده قرار دارد (<bdi dir="ltr">v{updateInfo.currentVersion}</bdi>)
+                  </span>
+                  <a
+                    href={updateInfo.releaseUrl || 'https://github.com/NazemiSh/NovaFlow-BPMS/releases'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-medium flex items-center gap-1"
+                  >
+                    <span>صفحه Releases گیت‌هاب</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </>
               )
             ) : (
               <span className="inline-flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300 bg-slate-200/60 dark:bg-slate-800 px-2.5 py-0.5 rounded-md">
@@ -297,7 +397,7 @@ export default function LicensePanel() {
           <button
             type="button"
             onClick={() => fetchUpdateInfo(true)}
-            disabled={checkingUpdate}
+            disabled={checkingUpdate || updating}
             title="بررسی مجدد نسخه روی GitHub"
             aria-label="استعلام مجدد نسخه سامانه"
             className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -505,7 +605,7 @@ export default function LicensePanel() {
                 <span>اطلاعات تماس توسعه‌دهنده جهت دریافت یا تمدید کلید لایسنس</span>
               </div>
               <span className="text-[11px] text-slate-400 dark:text-slate-400 font-mono">
-                v{statusData?.version || '1.0.0'}
+                v{statusData?.version || '1.0.1'}
               </span>
             </div>
 
@@ -593,13 +693,13 @@ export default function LicensePanel() {
                   <div className="truncate">
                     <span className="text-[10px] text-slate-400 block">مخزن رسمی سورس پروژه (GitHub)</span>
                     <a
-                      href={statusData?.vendorInfo?.repositoryUrl || statusData?.vendorInfo?.website || 'https://github.com/NazemiSh/BPMS-BRMS-Platform'}
+                      href={statusData?.vendorInfo?.repositoryUrl || statusData?.vendorInfo?.website || 'https://github.com/NazemiSh/NovaFlow-BPMS'}
                       target="_blank"
                       rel="noopener noreferrer"
                       dir="ltr"
                       className="text-xs font-bold text-indigo-700 dark:text-indigo-400 hover:underline font-mono truncate block flex items-center gap-1"
                     >
-                      <span>BPMS-BRMS-Platform</span>
+                      <span>NovaFlow-BPMS</span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
                   </div>

@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
-  "releaseDate": "2026-11-14",
-  "title": "نسخه پایه انتشار سازمانی سامانه جامع BPMS / BRMS Platform",
+  "version": "1.0.1",
+  "releaseDate": "2026-11-27",
+  "title": "به‌روزرسانی آنلاین (OTA Update) و بهبود پایداری سامانه نوافلو v1.0.1",
   "changelog": [
     "سیستم لایسنس سخت‌افزاری متصل به سرور (Machine ID) با امضای نامتقارن RSA-2048",
     "نرم‌افزار مستقل ویندوزی مدیریت و صدور لایسنس BPMS.LicenseGenerator با آرشیو، تمدید و فیلتر انقضا",
@@ -13,5 +13,5 @@
     "درگاه اعلان ایمیلی (Exchange / SMTP) و کنسول‌های پیشرفته تست اتصال سوکت، احراز هویت و ارسال لاگ",
     "سرویس خودکار استعلام نسخه‌های جدید روی GitHub با پشتیبانی کامل از شبکه‌های ایزوله و اینترانت"
   ],
-  "repositoryUrl": "https://github.com/NazemiSh/BPMS-BRMS-Platform"
+  "repositoryUrl": "https://github.com/NazemiSh/NovaFlow-BPMS"
 }
