@@ -8,6 +8,21 @@
 )
 
 $ErrorActionPreference = "Stop"
+
+try {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11 -bor [Net.SecurityProtocolType]::Tls
+    if (-not ("TrustAllCertsPolicy" -as [type])) {
+        Add-Type @"
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+public class TrustAllCertsPolicy : ICertificatePolicy {
+    public bool CheckValidationResult(ServicePoint srvPoint, X509Certificate certificate, WebRequest request, int certificateProblem) { return true; }
+}
+"@
+    }
+    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+} catch {}
+
 $UpdatesDir = Split-Path -Parent $StatusFilePath
 $LogFilePath = Join-Path $UpdatesDir "agent.log"
 $NormSitePath = [System.IO.Path]::GetFullPath($SitePath).TrimEnd('\')
@@ -147,23 +162,43 @@ try {
     Write-UpdateStatus -State "Verifying" -Step 3 -Message "در حال راه‌اندازی مجدد سامانه و بررسی سلامت سرویس..."
     Disable-AppOffline
 
+    Start-Sleep -Seconds 3
+
+    $targetHost = $null
     try {
-        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+        $uri = [Uri]$HealthCheckUrl
+        $targetHost = $uri.Authority
     } catch {}
 
+    $probeTargets = @(
+        @{ Url = $HealthCheckUrl; Headers = $null }
+    )
+    if (-not [string]::IsNullOrWhiteSpace($targetHost)) {
+        $probeTargets += @{ Url = "http://127.0.0.1/api/settings/public"; Headers = @{ Host = $targetHost } }
+        $probeTargets += @{ Url = "https://127.0.0.1/api/settings/public"; Headers = @{ Host = $targetHost } }
+    }
+    $probeTargets += @{ Url = "http://localhost/api/settings/public"; Headers = $null }
+
     $healthy = $false
-    for ($i = 1; $i -le 13; $i++) {
-        Start-Sleep -Seconds 2
-        try {
-            $resp = Invoke-WebRequest -Uri $HealthCheckUrl -UseBasicParsing -TimeoutSec 5
-            Write-AgentLog "Health check attempt $i returned HTTP $($resp.StatusCode)"
-            if ($resp.StatusCode -eq 200) {
-                $healthy = $true
-                break
+    for ($i = 1; $i -le 15; $i++) {
+        foreach ($probe in $probeTargets) {
+            try {
+                if ($probe.Headers) {
+                    $resp = Invoke-WebRequest -Uri $probe.Url -Headers $probe.Headers -UseBasicParsing -TimeoutSec 8
+                } else {
+                    $resp = Invoke-WebRequest -Uri $probe.Url -UseBasicParsing -TimeoutSec 8
+                }
+                Write-AgentLog "Health check attempt $i ($($probe.Url)) returned HTTP $($resp.StatusCode)"
+                if ($resp.StatusCode -eq 200) {
+                    $healthy = $true
+                    break
+                }
+            } catch {
+                Write-AgentLog "Health check attempt $i ($($probe.Url)) failed: $($_.Exception.Message)"
             }
-        } catch {
-            Write-AgentLog "Health check attempt $i failed: $($_.Exception.Message)"
         }
+        if ($healthy) { break }
+        Start-Sleep -Seconds 2
     }
 
     if ($healthy) {
