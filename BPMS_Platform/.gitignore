@@ -1,0 +1,48 @@
+# Visual Studio & .NET Build Output
+bin/
+obj/
+Debug/
+Release/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+
+# Local & Environment Configuration Files (Sensitive Data Protected)
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.Local.json
+!**/appsettings.Example.json
+
+# Node & Frontend Build Artifacts
+**/node_modules/
+**/dist/
+**/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# User Uploaded Static Files (Preserve empty directory)
+**/wwwroot/uploads/*
+!**/wwwroot/uploads/.gitkeep
+
+# Temporary, Cache and Log Files
+*.log
+*.tmp
+*.temp
+build.out
+out.txt
+server.log
+fix_ldap*.py
+*.zip
+
+# Windows OS Files
+[Tt]humbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/

@@ -1,0 +1,89 @@
+# ==============================================================================
+# NovaFlow BPMS — Comprehensive .gitignore
+# ==============================================================================
+
+# 1. Sensitive Configuration Files (Passwords, Keys & Internal Servers)
+**/appsettings.json
+**/appsettings.Production.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+!**/appsettings.Example.json
+
+# 2. Operational Data, Backups & User Uploads
+**/wwwroot/uploads/**
+!**/wwwroot/uploads/.gitkeep
+**/App_Data/**
+*.bak
+*.bpmsbackup
+Access/**
+LastMonthData/**
+App-backup1/**
+App-backup2/**
+
+# 3. Build Outputs, Dependencies & Release Packages
+**/node_modules/**
+**/bin/**
+**/obj/**
+**/dist/**
+**/.vite/
+publish_backend/**
+**/BPMS_Release/**
+**/BPMS_Release_Clean/**
+**/Pre-Install App/**
+*.zip
+*.exe
+*.msi
+
+# 4. Temporary Scripts, Logs & Scratch Artifacts
+check_*.py
+capture_*.js
+migrate_*.py
+dump_*.py
+inspect_*.py
+patch_gen.py
+scan_gen.py
+extract_logo.py
+update_readmes.py
+validate_final_docx.py
+verify_*.py
+generate_*.py
+generate_*.js
+test_cdp_live.js
+fix_ldap*.py
+*.log
+*.tmp
+*.temp
+build.out
+out.txt
+v2_dump.txt
+element_samples*.txt
+steps.txt
+render_login.html
+live_test_snap.png
+screenshot_1_login.png
+*.csv
+*.docx
+extracted_v2_images/**
+final_screenshots/**
+render_pages/**
+scratch/**
+.venv/**
+.tools/**
+__pycache__/**
+
+# 5. IDE, Visual Studio & OS Files
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+[Tt]humbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/

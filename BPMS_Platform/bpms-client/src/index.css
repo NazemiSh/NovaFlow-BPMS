@@ -1,0 +1,776 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+@variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   فونت ایران‌سنس (Iran Sans / IRANSansX با اعداد فارسی FaNum)
+   ========================================================================== */
+@font-face {
+  font-family: 'IRANSansX';
+  src: url('/fonts/IRANSansXFaNum-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANSansX';
+  src: url('/fonts/IRANSansXFaNum-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANSansX';
+  src: url('/fonts/IRANSansXFaNum-DemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANSansX';
+  src: url('/fonts/IRANSansXFaNum-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANSansX';
+  src: url('/fonts/IRANSansXFaNum-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANSansX';
+  src: url('/fonts/IRANSansXFaNum-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANSansX';
+  src: url('/fonts/IRANSansXFaNum-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* نام‌های مستعار برای سازگاری کامل */
+@font-face {
+  font-family: 'IRANSans';
+  src: url('/fonts/IRANSansXFaNum-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IRANSans';
+  src: url('/fonts/IRANSansXFaNum-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Sans';
+  src: url('/fonts/IRANSansXFaNum-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Sans';
+  src: url('/fonts/IRANSansXFaNum-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    direction: rtl;
+    text-align: right;
+    font-family: 'IRANSansX', 'IRANSans', 'Iran Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    direction: rtl;
+    text-align: right;
+    background-color: #f1f5f9;
+    color: #1e293b;
+    font-family: 'IRANSansX', 'IRANSans', 'Iran Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* اطمینان از اعمال فونت ایران‌سنس بر روی تمامی المان‌های ورودی، دکمه‌ها و فرم‌ها */
+  button, input, select, textarea, optgroup {
+    font-family: 'IRANSansX', 'IRANSans', 'Iran Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  /* اسکرول روان برای تمامی صفحات و دیوایس‌ها */
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* اعمال و اجباری‌سازی فونت IRANSans در هنگام چاپ و خروجی PDF و پشتیبانی از شکست صفحه */
+@media print {
+  *, *::before, *::after {
+    font-family: 'IRANSansX', 'IRANSans', 'Iran Sans', Tahoma, sans-serif !important;
+  }
+  .print-page-break,
+  .print-break-after {
+    page-break-after: always !important;
+    break-after: page !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    display: block !important;
+  }
+}
+
+/* ==========================================================================
+   ایزولاسیون کامل برگه چاپ و پیش‌نمایش PDF از تم تاریک سیستم
+   ========================================================================== */
+#bpms-printable-area,
+#bpms-printable-area *,
+.bpms-print-sheet,
+.bpms-print-sheet * {
+  color-scheme: light !important;
+}
+
+html.dark #bpms-printable-area .bpms-print-sheet,
+html.dark .bpms-print-sheet,
+.bpms-print-sheet {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2) !important;
+}
+
+html.dark .bpms-print-sheet h1,
+html.dark .bpms-print-sheet h2,
+html.dark .bpms-print-sheet h3,
+html.dark .bpms-print-sheet h4,
+html.dark .bpms-print-sheet h5,
+html.dark .bpms-print-sheet h6,
+html.dark .bpms-print-sheet p,
+html.dark .bpms-print-sheet span:not([class*="badge"]),
+html.dark .bpms-print-sheet label,
+html.dark .bpms-print-sheet b,
+html.dark .bpms-print-sheet td {
+  color: #0f172a !important;
+}
+
+html.dark .bpms-print-sheet th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.dark .bpms-print-sheet table {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.dark .bpms-print-sheet td {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* قوانین ریست اسکرول و ارتفاع چاپ جهت پشتیبانی نامحدود از صفحات متعدد در خروجی PDF */
+@media print {
+  html, body, #root {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body > *:not(#bpms-pdf-preview-modal),
+  #root > *:not(#bpms-pdf-preview-modal),
+  aside,
+  header,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  #bpms-pdf-preview-modal {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .bpms-printable-wrapper {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #bpms-printable-area {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  .bpms-scale-shell {
+    width: auto !important;
+    height: auto !important;
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  .bpms-submission-group {
+    display: block !important;
+  }
+
+  .bpms-print-sheet {
+    box-sizing: border-box !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
+/* اسکرول روان و واکنش‌گرا برای جداول و مودال‌ها در موبایل */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container,
+.overflow-x-auto,
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   پالت رنگی دقیق حالت تاریک (Dark Mode) بر اساس درخواست:
+   - پس‌زمینه اصلی صفحه (body و کانتینر اصلی): #1b1c29
+   - پس‌زمینه کارت‌ها، سایدبار، هدر، جداول و مودال‌ها: #252736
+   - پس‌زمینه فیلدهای ورودی (input, select, textarea) و باکس‌های داخلی فیلتر: #333645
+   - رنگ متن اصلی: #f1f2f3 و متن‌های فرعی: #b0b8c8
+   - دکمه‌های اصلی و آیتم فعال منوی سایدبار: #1a8aec با متن #f1f2f3
+   - رنگ حاشیه‌ها (border): #4e73a0 (در کارت‌ها و جداول با rgba(78, 115, 160, 0.45) و در فیلدها با #4e73a0 کامل)
+   ========================================================================== */
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* ۱. پس‌زمینه اصلی صفحه */
+html.dark body,
+html.dark .min-h-screen,
+html.dark .bg-slate-100 {
+  background-color: #1b1c29 !important;
+  color: #f1f2f3;
+}
+
+/* ۲. پس‌زمینه کارت‌ها، سایدبار، هدر، مودال‌ها، پنجره‌های گفتگو و جداول */
+html.dark .bg-white,
+html.dark aside,
+html.dark header,
+html.dark [role="dialog"] > div > div {
+  background-color: #252736 !important;
+  color: #f1f2f3;
+}
+
+/* ۳. کادر فیلترهای بالای کارتابل، تب‌ها و باکس‌های داخلی فرعی */
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/80,
+html.dark [class*="bg-slate-50"],
+html.dark .bg-slate-200\/60,
+html.dark .bg-slate-200\/70 {
+  background-color: #333645 !important;
+  border-color: rgba(78, 115, 160, 0.45) !important;
+}
+
+/* ۴. فیلدهای ورودی (input, select, textarea) و کادرهای درونی فیلتر */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+html.dark select,
+html.dark textarea {
+  background-color: #333645 !important;
+  border-color: #4e73a0 !important;
+  color: #f1f2f3 !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]):focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: #1a8aec !important;
+  box-shadow: 0 0 0 2px rgba(26, 138, 236, 0.35) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #b0b8c8 !important;
+  opacity: 0.75;
+}
+
+html.dark select option {
+  background-color: #252736 !important;
+  color: #f1f2f3 !important;
+}
+
+/* ۵. حاشیه‌ها (Borders) */
+html.dark .border,
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-300,
+html.dark .border-t,
+html.dark .border-b,
+html.dark .border-l,
+html.dark .border-r {
+  border-color: rgba(78, 115, 160, 0.45) !important;
+}
+
+html.dark .divide-slate-100 > * + *,
+html.dark .divide-slate-200 > * + * {
+  border-color: rgba(78, 115, 160, 0.45) !important;
+}
+
+/* ۶. متون و عناوین */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6 {
+  color: #f1f2f3 !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-400,
+html.dark .text-gray-600,
+html.dark .text-gray-500,
+html.dark .text-gray-400 {
+  color: #b0b8c8 !important;
+}
+
+/* ۷. دکمه‌های اصلی و آیتم فعال منوی سایدبار: #1a8aec با متن #f1f2f3 */
+html.dark .bg-indigo-50,
+html.dark .nav-item-active {
+  background-color: #1a8aec !important;
+  color: #f1f2f3 !important;
+  box-shadow: 0 4px 14px rgba(26, 138, 236, 0.35);
+}
+
+html.dark .bg-indigo-50 span,
+html.dark .bg-indigo-50 .text-indigo-600 {
+  color: #f1f2f3 !important;
+}
+
+html.dark .bg-indigo-600,
+html.dark .hover\:bg-indigo-700:hover {
+  background-color: #1a8aec !important;
+  color: #f1f2f3 !important;
+}
+
+/* هاور عمومی در حالت تاریک */
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover:not(aside button):not([role="dialog"] button) {
+  background-color: #333645 !important;
+  color: #f1f2f3 !important;
+}
+
+/* آیتم‌های منوی سایدبار و دراور: کاملاً بدون کادر و شفاف در حالت عادی */
+aside button.bg-transparent:not(:hover),
+[role="dialog"] button.bg-transparent:not(:hover) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* هاور دکمه‌های غیرفعال سایدبار در حالت روشن (Light Mode) با تغییر رنگ کاملاً واضح و نرم */
+aside button.bg-transparent:hover,
+[role="dialog"] button.bg-transparent:hover {
+  background-color: rgba(226, 232, 240, 0.8) !important;
+  color: #0f172a !important;
+  border-color: transparent !important;
+}
+
+/* هاور دکمه‌های غیرفعال سایدبار در حالت تاریک (Dark Mode) */
+html.dark aside button.bg-transparent:hover,
+html.dark [role="dialog"] button.bg-transparent:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+}
+
+/* ۸. جداول در حالت تاریک */
+html.dark thead,
+html.dark th {
+  background-color: #1d1e2b !important;
+  color: #b0b8c8 !important;
+  border-bottom: 1px solid rgba(78, 115, 160, 0.45) !important;
+}
+
+html.dark tbody tr {
+  border-bottom: 1px solid rgba(78, 115, 160, 0.3) !important;
+}
+
+html.dark tbody tr:hover {
+  background-color: rgba(51, 54, 69, 0.55) !important;
+}
+
+html.dark td {
+  border-color: rgba(78, 115, 160, 0.3) !important;
+}
+
+/* ۹. مودال‌ها، جعبه‌های گفتگو و کدها */
+html.dark .shadow-2xl,
+html.dark .shadow-xl {
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.65) !important;
+}
+
+html.dark pre {
+  background-color: #141520 !important;
+  border-color: rgba(78, 115, 160, 0.45) !important;
+}
+
+/* ۱۰. بج‌های رنگی وضعیت با حفظ هویت رنگی و جلوه شیک */
+html.dark .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.18) !important;
+}
+html.dark .text-emerald-700,
+html.dark .text-emerald-800 {
+  color: #34d399 !important;
+}
+
+html.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+}
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900 {
+  color: #fbbf24 !important;
+}
+html.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.dark .bg-rose-100 {
+  background-color: rgba(244, 63, 94, 0.18) !important;
+}
+html.dark .text-rose-700,
+html.dark .text-rose-800 {
+  color: #fb7185 !important;
+}
+html.dark .bg-rose-50 {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+html.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.18) !important;
+}
+html.dark .text-blue-700 {
+  color: #60a5fa !important;
+}
+
+/* اسکرول‌بار سفارشی پالت جدید تیره */
+html.dark ::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #1b1c29;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #333645;
+  border-radius: 9999px;
+  border: 1px solid rgba(78, 115, 160, 0.3);
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4e73a0;
+}
+
+/* ==========================================================================
+   مدیریت و ایزولاسیون چاپ و خروجی PDF سازمانی (BPMS Print Portal)
+   ========================================================================== */
+@media screen {
+  #bpms-print-portal {
+    display: none !important;
+  }
+}
+
+@media print {
+  @page {
+    margin: 10mm;
+  }
+  
+  html, body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* مخفی‌سازی کامل تمام اجزای برنامه خارج از پرتال چاپ */
+  body > *:not(#bpms-print-portal) {
+    display: none !important;
+  }
+
+  /* نمایش انحصاری پرتال چاپ با ساختار بلوکی و شناور آزاد */
+  body > #bpms-print-portal {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* خنثی‌سازی کامل تم تیره در برگه پیش‌نمایش و خروجی چاپ */
+#bpms-print-portal,
+#bpms-print-portal *,
+.bpms-print-sheet,
+.bpms-print-sheet * {
+  color-scheme: light !important;
+}
+
+html.dark #bpms-print-portal,
+html.dark .bpms-print-sheet,
+#bpms-print-portal,
+.bpms-print-sheet {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.dark #bpms-print-portal .bg-white,
+html.dark .bpms-print-sheet .bg-white,
+#bpms-print-portal .bg-white,
+.bpms-print-sheet .bg-white {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.dark #bpms-print-portal .bg-slate-50:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark #bpms-print-portal [class*="bg-slate-50"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet .bg-slate-50:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet [class*="bg-slate-50"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+#bpms-print-portal .bg-slate-50:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+#bpms-print-portal [class*="bg-slate-50"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet .bg-slate-50:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet [class*="bg-slate-50"]:not([data-designer-toolbar]):not([data-designer-toolbar] *) {
+  background-color: #f8fafc !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.dark #bpms-print-portal .bg-slate-100:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark #bpms-print-portal [class*="bg-slate-100"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet .bg-slate-100:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet [class*="bg-slate-100"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+#bpms-print-portal .bg-slate-100:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+#bpms-print-portal [class*="bg-slate-100"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet .bg-slate-100:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet [class*="bg-slate-100"]:not([data-designer-toolbar]):not([data-designer-toolbar] *) {
+  background-color: #f1f5f9 !important;
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.dark #bpms-print-portal input:not([type="checkbox"]):not([type="radio"]),
+html.dark #bpms-print-portal textarea,
+html.dark .bpms-print-sheet input:not([type="checkbox"]):not([type="radio"]),
+html.dark .bpms-print-sheet textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #93c5fd !important;
+}
+
+/* بازگرداندن رنگ استاندارد کاغذی بج‌های وضعیت داخل برگه چاپ در تم تاریک */
+html.dark #bpms-print-portal .bg-emerald-100, html.dark .bpms-print-sheet .bg-emerald-100 { background-color: #d1fae5 !important; }
+html.dark #bpms-print-portal .text-emerald-700, html.dark #bpms-print-portal .text-emerald-800,
+html.dark .bpms-print-sheet .text-emerald-700, html.dark .bpms-print-sheet .text-emerald-800 { color: #065f46 !important; }
+html.dark #bpms-print-portal .bg-amber-100, html.dark .bpms-print-sheet .bg-amber-100 { background-color: #fef3c7 !important; }
+html.dark #bpms-print-portal .text-amber-700, html.dark #bpms-print-portal .text-amber-800,
+html.dark .bpms-print-sheet .text-amber-700, html.dark .bpms-print-sheet .text-amber-800 { color: #92400e !important; }
+html.dark #bpms-print-portal .bg-rose-100, html.dark .bpms-print-sheet .bg-rose-100 { background-color: #ffe4e6 !important; }
+html.dark #bpms-print-portal .text-rose-700, html.dark #bpms-print-portal .text-rose-800,
+html.dark .bpms-print-sheet .text-rose-700, html.dark .bpms-print-sheet .text-rose-800 { color: #9f1239 !important; }
+html.dark #bpms-print-portal .bg-blue-100, html.dark .bpms-print-sheet .bg-blue-100 { background-color: #dbeafe !important; }
+html.dark #bpms-print-portal .text-blue-700, html.dark .bpms-print-sheet .text-blue-700 { color: #1d4ed8 !important; }
+
+html.dark #bpms-print-portal table,
+html.dark .bpms-print-sheet table,
+#bpms-print-portal table,
+.bpms-print-sheet table {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.dark #bpms-print-portal thead,
+html.dark #bpms-print-portal th,
+html.dark .bpms-print-sheet thead,
+html.dark .bpms-print-sheet th,
+#bpms-print-portal thead,
+#bpms-print-portal th,
+.bpms-print-sheet thead,
+.bpms-print-sheet th {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.dark #bpms-print-portal td,
+html.dark .bpms-print-sheet td,
+#bpms-print-portal td,
+.bpms-print-sheet td {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.dark #bpms-print-portal h1, html.dark #bpms-print-portal h2, html.dark #bpms-print-portal h3, html.dark #bpms-print-portal h4, html.dark #bpms-print-portal h5, html.dark #bpms-print-portal h6,
+html.dark .bpms-print-sheet h1, html.dark .bpms-print-sheet h2, html.dark .bpms-print-sheet h3, html.dark .bpms-print-sheet h4, html.dark .bpms-print-sheet h5, html.dark .bpms-print-sheet h6,
+#bpms-print-portal h1, #bpms-print-portal h2, #bpms-print-portal h3, #bpms-print-portal h4, #bpms-print-portal h5, #bpms-print-portal h6,
+.bpms-print-sheet h1, .bpms-print-sheet h2, .bpms-print-sheet h3, .bpms-print-sheet h4, .bpms-print-sheet h5, .bpms-print-sheet h6 {
+  color: #0f172a !important;
+}
+
+html.dark #bpms-print-portal p, html.dark #bpms-print-portal div:not(.no-print):not([data-designer-toolbar]):not([data-designer-toolbar] *), html.dark #bpms-print-portal td, html.dark #bpms-print-portal th, html.dark #bpms-print-portal a, html.dark #bpms-print-portal span:not([class*="badge"]):not(.no-print):not([data-designer-toolbar] *), html.dark #bpms-print-portal label, html.dark #bpms-print-portal b, html.dark #bpms-print-portal strong,
+html.dark .bpms-print-sheet p, html.dark .bpms-print-sheet div:not(.no-print):not([data-designer-toolbar]):not([data-designer-toolbar] *), html.dark .bpms-print-sheet td, html.dark .bpms-print-sheet th, html.dark .bpms-print-sheet a, html.dark .bpms-print-sheet span:not([class*="badge"]):not(.no-print):not([data-designer-toolbar] *), html.dark .bpms-print-sheet label, html.dark .bpms-print-sheet b, html.dark .bpms-print-sheet strong,
+#bpms-print-portal p, #bpms-print-portal div:not(.no-print):not([data-designer-toolbar]):not([data-designer-toolbar] *), #bpms-print-portal td, #bpms-print-portal th, #bpms-print-portal a, #bpms-print-portal span:not([class*="badge"]):not(.no-print):not([data-designer-toolbar] *), #bpms-print-portal label, #bpms-print-portal b, #bpms-print-portal strong,
+.bpms-print-sheet p, .bpms-print-sheet div:not(.no-print):not([data-designer-toolbar]):not([data-designer-toolbar] *), .bpms-print-sheet td, .bpms-print-sheet th, .bpms-print-sheet a, .bpms-print-sheet span:not([class*="badge"]):not(.no-print):not([data-designer-toolbar] *), .bpms-print-sheet label, .bpms-print-sheet b, .bpms-print-sheet strong {
+  color: #0f172a !important;
+}
+
+/* حفظ استایل نوار ابزار شناور طراح قالب چاپ روی کاغذ سفید در تم تاریک */
+html.dark [data-designer-toolbar],
+[data-designer-toolbar] {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+html.dark [data-designer-toolbar] button:not([class*="bg-blue-"]):not([class*="text-rose-"]):not([class*="text-emerald-"]),
+[data-designer-toolbar] button:not([class*="bg-blue-"]):not([class*="text-rose-"]):not([class*="text-emerald-"]) {
+  color: #e2e8f0 !important;
+}
+html.dark [data-designer-toolbar] button[class*="bg-blue-600"],
+[data-designer-toolbar] button[class*="bg-blue-600"] {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark #bpms-print-portal .text-slate-700, html.dark #bpms-print-portal .text-slate-800, html.dark #bpms-print-portal .text-slate-900, html.dark #bpms-print-portal .text-gray-800, html.dark #bpms-print-portal .text-gray-900,
+html.dark .bpms-print-sheet .text-slate-700, html.dark .bpms-print-sheet .text-slate-800, html.dark .bpms-print-sheet .text-slate-900, html.dark .bpms-print-sheet .text-gray-800, html.dark .bpms-print-sheet .text-gray-900 {
+  color: #0f172a !important;
+}
+
+html.dark #bpms-print-portal .text-slate-400, html.dark #bpms-print-portal .text-slate-500, html.dark #bpms-print-portal .text-slate-600,
+html.dark .bpms-print-sheet .text-slate-400, html.dark .bpms-print-sheet .text-slate-500, html.dark .bpms-print-sheet .text-slate-600,
+#bpms-print-portal .text-slate-400, #bpms-print-portal .text-slate-500, #bpms-print-portal .text-slate-600,
+.bpms-print-sheet .text-slate-400, .bpms-print-sheet .text-slate-500, .bpms-print-sheet .text-slate-600 {
+  color: #475569 !important;
+}
+
+html.dark #bpms-print-portal .border,
+html.dark #bpms-print-portal .border-t,
+html.dark #bpms-print-portal .border-b,
+html.dark #bpms-print-portal .border-slate-200,
+html.dark #bpms-print-portal .border-slate-300,
+html.dark .bpms-print-sheet .border,
+html.dark .bpms-print-sheet .border-t,
+html.dark .bpms-print-sheet .border-b,
+html.dark .bpms-print-sheet .border-slate-200,
+html.dark .bpms-print-sheet .border-slate-300,
+#bpms-print-portal [class*="border-slate-"],
+.bpms-print-sheet [class*="border-slate-"],
+html.dark #bpms-print-portal [class*="border-slate-"],
+html.dark .bpms-print-sheet [class*="border-slate-"] {
+  border-color: #cbd5e1 !important;
+}
+
+/* خنثی‌سازی هرگونه کلاس تیره Tailwind داخل برگه پیش‌نمایش و خروجی چاپی */
+#bpms-print-portal [class*="dark:bg-slate-"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+#bpms-print-portal [class*="bg-slate-800"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+#bpms-print-portal [class*="bg-slate-900"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+#bpms-print-portal [class*="bg-slate-950"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet [class*="dark:bg-slate-"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet [class*="bg-slate-800"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet [class*="bg-slate-900"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+.bpms-print-sheet [class*="bg-slate-950"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark #bpms-print-portal [class*="dark:bg-slate-"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark #bpms-print-portal [class*="bg-slate-800"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark #bpms-print-portal [class*="bg-slate-900"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark #bpms-print-portal [class*="bg-slate-950"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet [class*="dark:bg-slate-"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet [class*="bg-slate-800"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet [class*="bg-slate-900"]:not([data-designer-toolbar]):not([data-designer-toolbar] *),
+html.dark .bpms-print-sheet [class*="bg-slate-950"]:not([data-designer-toolbar]):not([data-designer-toolbar] *) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* حفظ خوانایی متن سفید روی هدر تیره در حالتی که کاربر عمداً رنگ هدر تیره انتخاب کرده باشد */
+#bpms-print-portal .text-white,
+.bpms-print-sheet .text-white,
+html.dark #bpms-print-portal .text-white,
+html.dark .bpms-print-sheet .text-white {
+  color: #ffffff !important;
+}
+
+.print-break-after {
+  page-break-after: always !important;
+  break-after: page !important;
+}
