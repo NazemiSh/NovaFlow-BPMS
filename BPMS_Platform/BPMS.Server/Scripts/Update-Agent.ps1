@@ -10,6 +10,9 @@
 $ErrorActionPreference = "Stop"
 $UpdatesDir = Split-Path -Parent $StatusFilePath
 $LogFilePath = Join-Path $UpdatesDir "agent.log"
+$NormSitePath = [System.IO.Path]::GetFullPath($SitePath).TrimEnd('\')
+$AppOfflinePath = Join-Path $NormSitePath "app_offline.htm"
+$TargetDllPath = Join-Path $NormSitePath "BPMS.Server.dll"
 
 function Write-AgentLog {
     param([string]$Message)
@@ -46,6 +49,60 @@ function Write-UpdateStatus {
     [System.IO.File]::WriteAllText($StatusFilePath, $json, [System.Text.UTF8Encoding]::new($false))
 }
 
+function Enable-AppOffline {
+    $html = @"
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>در حال به‌روزرسانی | نوافلو</title>
+  <style>
+    body { font-family: Tahoma, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .box { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px 40px; text-align: center; max-width: 460px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+    h2 { margin: 0 0 12px; font-size: 18px; color: #38bdf8; }
+    p { margin: 0; font-size: 14px; line-height: 1.8; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>به‌روزرسانی سامانه نوافلو</h2>
+    <p>سامانه نوافلو در حال به‌روزرسانی به نسخه جدید است؛ لطفاً چند لحظه صبر کنید...</p>
+  </div>
+</body>
+</html>
+"@
+    [System.IO.File]::WriteAllText($AppOfflinePath, $html, [System.Text.UTF8Encoding]::new($false))
+    Write-AgentLog "Created app_offline.htm at '$AppOfflinePath'."
+}
+
+function Disable-AppOffline {
+    if (Test-Path $AppOfflinePath) {
+        Remove-Item -Path $AppOfflinePath -Force -ErrorAction SilentlyContinue
+        Write-AgentLog "Removed app_offline.htm from '$AppOfflinePath'."
+    }
+}
+
+function Wait-DllUnlocked {
+    param([int]$TimeoutSeconds = 15)
+    if (!(Test-Path $TargetDllPath)) {
+        return
+    }
+    $maxAttempts = $TimeoutSeconds * 2
+    for ($i = 1; $i -le $maxAttempts; $i++) {
+        try {
+            $fs = [System.IO.File]::Open($TargetDllPath, [System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+            $fs.Close()
+            $fs.Dispose()
+            Write-AgentLog "BPMS.Server.dll lock released after $($i * 0.5)s."
+            return
+        } catch {
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    Write-AgentLog "Warning: BPMS.Server.dll still locked after ${TimeoutSeconds}s; attempting copy anyway."
+}
+
 function Copy-AppFilesSafe {
     param(
         [string]$SourceDir,
@@ -57,6 +114,7 @@ function Copy-AppFilesSafe {
     foreach ($file in $allFiles) {
         $rel = $file.FullName.Substring($srcNorm.Length).TrimStart('\')
         if ($rel -ieq "appsettings.json" -or
+            $rel -ieq "app_offline.htm" -or
             $rel -ilike "wwwroot\uploads\*" -or
             $rel -ieq "wwwroot\uploads" -or
             $rel -ilike "App_Data\*" -or
@@ -71,61 +129,23 @@ function Copy-AppFilesSafe {
         Copy-Item -Path $file.FullName -Destination $destFile -Force
         $copiedCount++
     }
-    Write-AgentLog "Copied $copiedCount files from '$SourceDir' to '$TargetDir' (preserved appsettings.json, wwwroot\uploads, App_Data)."
+    Write-AgentLog "Copied $copiedCount files from '$SourceDir' to '$TargetDir' (preserved appsettings.json, wwwroot\uploads, App_Data, app_offline.htm)."
 }
 
-$appPoolName = $null
 try {
-    Write-AgentLog "=== Update-Agent started for target v$TargetVersion ==="
-    Write-AgentLog "SitePath=$SitePath | ExtractedAppPath=$ExtractedAppPath | HealthCheckUrl=$HealthCheckUrl"
+    Write-AgentLog "=== Update-Agent (app_offline.htm mode) started for target v$TargetVersion ==="
+    Write-AgentLog "SitePath=$NormSitePath | ExtractedAppPath=$ExtractedAppPath | HealthCheckUrl=$HealthCheckUrl"
 
     Start-Sleep -Seconds 2
 
-    Import-Module WebAdministration -ErrorAction Stop
-    $normSitePath = [System.IO.Path]::GetFullPath($SitePath).TrimEnd('\')
+    Write-UpdateStatus -State "Deploying" -Step 3 -Message "در حال توقف ایمن برنامه (app_offline.htm) و جایگزینی فایل‌های نسخه v$TargetVersion..."
+    Enable-AppOffline
+    Wait-DllUnlocked -TimeoutSeconds 15
 
-    $matchedSite = Get-Website | Where-Object {
-        $p = [System.Environment]::ExpandEnvironmentVariables($_.PhysicalPath)
-        [System.IO.Path]::GetFullPath($p).TrimEnd('\') -ieq $normSitePath
-    } | Select-Object -First 1
+    Copy-AppFilesSafe -SourceDir $ExtractedAppPath -TargetDir $NormSitePath
 
-    if ($matchedSite) {
-        $appPoolName = $matchedSite.ApplicationPool
-        Write-AgentLog "Matched IIS Website '$($matchedSite.Name)' with AppPool '$appPoolName'."
-    } else {
-        $matchedApp = Get-WebApplication | Where-Object {
-            $p = [System.Environment]::ExpandEnvironmentVariables($_.PhysicalPath)
-            [System.IO.Path]::GetFullPath($p).TrimEnd('\') -ieq $normSitePath
-        } | Select-Object -First 1
-        if ($matchedApp) {
-            $appPoolName = $matchedApp.ApplicationPool
-            Write-AgentLog "Matched IIS WebApplication '$($matchedApp.Path)' with AppPool '$appPoolName'."
-        }
-    }
-
-    if ([string]::IsNullOrWhiteSpace($appPoolName)) {
-        throw "Could not resolve IIS Application Pool for physical path: $normSitePath"
-    }
-
-    Write-UpdateStatus -State "Deploying" -Step 3 -Message "در حال توقف سرویس IIS ($appPoolName) و جایگزینی فایل‌های نسخه v$TargetVersion..."
-
-    $poolState = (Get-WebAppPoolState -Name $appPoolName).Value
-    Write-AgentLog "Current AppPool '$appPoolName' state: $poolState"
-    if ($poolState -ne "Stopped") {
-        Stop-WebAppPool -Name $appPoolName
-        $waitCount = 0
-        while ((Get-WebAppPoolState -Name $appPoolName).Value -ne "Stopped" -and $waitCount -lt 20) {
-            Start-Sleep -Milliseconds 750
-            $waitCount++
-        }
-        Write-AgentLog "AppPool '$appPoolName' state after stop wait: $((Get-WebAppPoolState -Name $appPoolName).Value)"
-    }
-
-    Copy-AppFilesSafe -SourceDir $ExtractedAppPath -TargetDir $normSitePath
-
-    Write-UpdateStatus -State "Verifying" -Step 3 -Message "در حال راه‌اندازی مجدد سرویس و بررسی سلامت سامانه..."
-    Start-WebAppPool -Name $appPoolName
-    Write-AgentLog "Started AppPool '$appPoolName'. Beginning health checks at $HealthCheckUrl..."
+    Write-UpdateStatus -State "Verifying" -Step 3 -Message "در حال راه‌اندازی مجدد سامانه و بررسی سلامت سرویس..."
+    Disable-AppOffline
 
     try {
         [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
@@ -149,36 +169,32 @@ try {
     if ($healthy) {
         Write-UpdateStatus -State "Completed" -Step 4 -Message "به‌روزرسانی به نسخه v$TargetVersion با موفقیت انجام شد. در حال بارگذاری مجدد صفحه..."
     } else {
-        Write-UpdateStatus -State "RolledBack" -Step 3 -Message "سامانه پس از به‌روزرسانی پاسخگو نبود؛ در حال بازگشت خودکار به نسخه قبلی..." -ErrorText "Health check timeout after 25s"
-
-        if ((Get-WebAppPoolState -Name $appPoolName).Value -ne "Stopped") {
-            Stop-WebAppPool -Name $appPoolName
-            Start-Sleep -Seconds 3
-        }
-        Copy-AppFilesSafe -SourceDir $BackupAppPath -TargetDir $normSitePath
-        Start-WebAppPool -Name $appPoolName
-
-        Write-UpdateStatus -State "RolledBack" -Step 0 -Message "به‌روزرسانی ناموفق بود و سامانه به‌صورت خودکار به نسخه قبلی بازگردانده شد." -ErrorText "Health check failed; auto-rollback completed."
+        Write-AgentLog "Health check timed out after 25s. Starting Auto-Rollback..."
+        Enable-AppOffline
+        Wait-DllUnlocked -TimeoutSeconds 15
+        Copy-AppFilesSafe -SourceDir $BackupAppPath -TargetDir $NormSitePath
+        Disable-AppOffline
+        Write-UpdateStatus -State "Failed" -Step 0 -Message "سامانه پس از به‌روزرسانی پاسخگو نبود؛ عملیات Rollback انجام شد و نسخه قبلی بازیابی گردید." -ErrorText "Health check timeout after 25s; Auto-Rollback completed."
     }
 }
 catch {
     $errMsg = $_.Exception.Message
     Write-AgentLog "EXCEPTION: $errMsg"
     try {
-        if ($appPoolName -and (Test-Path $BackupAppPath)) {
-            if ((Get-WebAppPoolState -Name $appPoolName).Value -ne "Stopped") {
-                Stop-WebAppPool -Name $appPoolName
-                Start-Sleep -Seconds 2
-            }
-            Copy-AppFilesSafe -SourceDir $BackupAppPath -TargetDir $SitePath
-            Start-WebAppPool -Name $appPoolName
-            Write-UpdateStatus -State "RolledBack" -Step 0 -Message "خطا در به‌روزرسانی ($errMsg)؛ بازگشت خودکار به نسخه قبلی انجام شد." -ErrorText $errMsg
+        if (Test-Path $BackupAppPath) {
+            Enable-AppOffline
+            Wait-DllUnlocked -TimeoutSeconds 15
+            Copy-AppFilesSafe -SourceDir $BackupAppPath -TargetDir $NormSitePath
+            Disable-AppOffline
+            Write-UpdateStatus -State "Failed" -Step 0 -Message "خطا در به‌روزرسانی ($errMsg)؛ عملیات Rollback انجام شد و نسخه قبلی بازیابی گردید." -ErrorText $errMsg
         } else {
+            Disable-AppOffline
             Write-UpdateStatus -State "Failed" -Step 0 -Message "خطا در اجرای به‌روزرسانی: $errMsg" -ErrorText $errMsg
         }
     } catch {
         $rbErr = $_.Exception.Message
         Write-AgentLog "ROLLBACK EXCEPTION: $rbErr"
+        Disable-AppOffline
         Write-UpdateStatus -State "Failed" -Step 0 -Message "خطا در اجرای به‌روزرسانی: $errMsg" -ErrorText "$errMsg | Rollback error: $rbErr"
     }
 }
