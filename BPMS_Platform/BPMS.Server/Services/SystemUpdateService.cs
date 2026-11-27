@@ -39,6 +39,7 @@ public class SystemUpdateService : ISystemUpdateService
     private readonly IWebHostEnvironment _env;
     private readonly IConfiguration _configuration;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IBackupService _backupService;
     private readonly ILogger<SystemUpdateService> _logger;
 
     public SystemUpdateService(
@@ -46,12 +47,14 @@ public class SystemUpdateService : ISystemUpdateService
         IWebHostEnvironment env,
         IConfiguration configuration,
         ApplicationDbContext dbContext,
+        IBackupService backupService,
         ILogger<SystemUpdateService> logger)
     {
         _httpClientFactory = httpClientFactory;
         _env = env;
         _configuration = configuration;
         _dbContext = dbContext;
+        _backupService = backupService;
         _logger = logger;
     }
 
@@ -304,8 +307,37 @@ public class SystemUpdateService : ISystemUpdateService
             });
 
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            var dbBackupPath = Path.Combine(backupsDir, $"PreUpdate_v{currentVersion}_to_v{targetVersion}_{timestamp}.bak");
-            await BackupDatabaseAsync(dbBackupPath, ct);
+            var logicalBackupPath = Path.Combine(backupsDir, $"PreUpdate_v{currentVersion}_to_v{targetVersion}_{timestamp}.bpmsbackup");
+            bool logicalBackupSucceeded = false;
+            try
+            {
+                var backupBytes = await _backupService.CreateBackupZipAsync(
+                    new List<string> { "users", "forms", "data", "settings", "uploads" },
+                    $"Pre-update backup v{currentVersion} to v{targetVersion}",
+                    "PreUpdate");
+                await File.WriteAllBytesAsync(logicalBackupPath, backupBytes, ct);
+                logicalBackupSucceeded = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Logical .bpmsbackup creation failed before OTA update");
+            }
+
+            try
+            {
+                await BackupDatabaseNativeAsync(currentVersion, targetVersion, timestamp, ct);
+            }
+            catch (Exception ex)
+            {
+                if (logicalBackupSucceeded)
+                {
+                    _logger.LogWarning(ex, "SQL Server native BACKUP DATABASE failed, continuing with .bpmsbackup fallback at {Path}", logicalBackupPath);
+                }
+                else
+                {
+                    throw new InvalidOperationException("تهیه نسخه پشتیبان از پایگاه‌داده ناموفق بود: " + ex.Message, ex);
+                }
+            }
 
             var appBackupDir = Path.Combine(backupsDir, $"PreUpdate_App_{timestamp}");
             CopySiteFilesForBackup(_env.ContentRootPath, appBackupDir);
@@ -364,7 +396,7 @@ public class SystemUpdateService : ISystemUpdateService
         }
     }
 
-    private async Task BackupDatabaseAsync(string backupFilePath, CancellationToken ct)
+    private async Task BackupDatabaseNativeAsync(string currentVersion, string targetVersion, string timestamp, CancellationToken ct)
     {
         var connStr = _configuration.GetConnectionString("BPMS_DB") ?? _dbContext.Database.GetConnectionString();
         if (string.IsNullOrWhiteSpace(connStr))
@@ -381,6 +413,21 @@ public class SystemUpdateService : ISystemUpdateService
 
         await using var conn = new SqlConnection(connStr);
         await conn.OpenAsync(ct);
+
+        string? defaultBackupDir = null;
+        await using (var pathCmd = new SqlCommand("SELECT CAST(SERVERPROPERTY('InstanceDefaultBackupPath') AS NVARCHAR(512))", conn))
+        {
+            var raw = await pathCmd.ExecuteScalarAsync(ct);
+            defaultBackupDir = raw?.ToString()?.Trim();
+        }
+
+        if (string.IsNullOrWhiteSpace(defaultBackupDir))
+        {
+            throw new InvalidOperationException("مسیر پیش‌فرض بکاپ SQL Server (InstanceDefaultBackupPath) در دسترس نیست.");
+        }
+
+        var backupFileName = $"BPMS_DB_PreUpdate_v{currentVersion}_to_v{targetVersion}_{timestamp}.bak";
+        var backupFilePath = Path.Combine(defaultBackupDir, backupFileName);
 
         var safeDbName = dbName.Replace("]", "]]");
         var sql = $"BACKUP DATABASE [{safeDbName}] TO DISK = @BackupPath WITH FORMAT, INIT, NAME = @BackupName;";
